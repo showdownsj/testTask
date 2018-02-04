@@ -7,6 +7,20 @@ public class FilesCopyTableWorker {
 
     public FilesCopyTableWorker(Connection connection){
         this.connection=connection;
+        PreparedStatement preparedStatement;
+        try{
+            preparedStatement = this.connection.prepareStatement("CREATE TABLE IF NOT EXISTS LogOfCopy (\n" +
+                    " FIleId INT NOT NULL AUTO_INCREMENT,\n" +
+                    " FileName VARCHAR(255) NOT NULL,\n" +
+                    " DateOfCopy DATETIME NOT NULL,\n" +
+                    "PRIMARY KEY (FileId));");
+            preparedStatement.executeUpdate();
+            preparedStatement.close();
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+        }
+
     }
 
 
@@ -17,6 +31,7 @@ public class FilesCopyTableWorker {
            PreparedStatement preparedStatement;
            //System.out.println(this.connection);
            //System.out.println(filesCopyTable.getNameOfFile()+"   "+filesCopyTable.getDateOfCopy());
+
            preparedStatement = this.connection.prepareStatement( "INSERT INTO LogOfCopy " +
                    "(FileName, DateOfCopy) VALUES (?,?)" );
            preparedStatement.setString( 1, filesCopyTable.getNameOfFile() );
