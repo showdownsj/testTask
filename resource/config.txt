@@ -1,0 +1,9 @@
+  sftp_host=127.0.0.1
+  sftp_port=22
+  sftp_user=sftpUser
+  sftp_password=sftp123
+  sftp_remote_dir=/home/trash
+  local_dir=/home/alexei/resultOfCopy
+  sql_user=sqlUser
+  sql_password=sqluser123
+  sql_database=FilesCopy

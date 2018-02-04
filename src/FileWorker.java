@@ -1,15 +1,16 @@
-import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.io.*;
-import  com.jcraft.jsch.*;
 
+// implementation of file worker with:
+// 1. setParseFile() - parsing config file to Map <parameter, value> (proposed what file has
+//                     a view like 'sftpUser = "sftp_user" ' where in the left side
+//                     before '=' there're unchangeable names of parameters and right of '='
+//                     there're value of parameters);
+// 2. copyFiles() - moving files from remote directory to local.
 public class FileWorker {
 
     private String fileToParse;
-    private String fileToCopy;
-    private String pathLocalCopy;
     private HashMap<String,String> configs;
 
     private final static String sftpUser = "sftp_user";
@@ -23,7 +24,7 @@ public class FileWorker {
     private final static String sqlPass = "sql_password";
     private final static String sqlDB = "sql_database";
 
-    public FileWorker(String toParse){
+    FileWorker(String toParse){
         this.fileToParse = toParse;
 
     }
@@ -36,31 +37,57 @@ public class FileWorker {
             FileInputStream fileInputStream = new FileInputStream(toParse);
             BufferedReader reader = new BufferedReader(new InputStreamReader(fileInputStream));
             String temp;
-            while ((temp = reader.readLine()) !=null){
-                parsed.put(temp.split("=")[0].trim(),temp.split("=")[1].trim());
 
+
+            while ((temp = reader.readLine()) !=null) {
+                if (!temp.equals(""))
+                    parsed.put(temp.split("=")[0].trim(), temp.split("=")[1].trim());
 
             }
+
+            this.configs = parsed;
 
 
         }
         catch (IOException ex){
             ex.printStackTrace();
         }
+        catch (ArrayIndexOutOfBoundsException ex){
+            System.out.println("Config file is incorrect");
+            ex.printStackTrace();
+        }
 
-       this.configs = parsed;
+
+
 
     }
 
+
+    //copy files from remote directory to local
+    //1. initiazle connection to database for writing logs of copying
+    //2. create sftp connection and copying of files, then close connection to sql-base
     public void copyFiles(){
         setParseFile();
 
-        SftpConnection sftpConnection = new SftpConnection(this.configs.get(sftpHost),
-                Integer.parseInt(this.configs.get(sftpPort)),
-                this.configs.get(sftpUser),
-                this.configs.get(sftpPass));
-        int res = sftpConnection.setConnection(this.configs.get(sftpRemDir), this.configs.get(localDir));
-        System.out.println(res);
+        if (this.configs !=null) {
+            //1
+            DataBaseConnection dbConnection = new DataBaseConnection();
+            dbConnection.initConnection(this.configs.get(sqlDB), this.configs.get(sqlUser),
+                    this.configs.get(sqlPass));
+
+
+            //2
+            SftpConnection sftpConnection = new SftpConnection(this.configs.get(sftpHost),
+                    Integer.parseInt(this.configs.get(sftpPort)),
+                    this.configs.get(sftpUser),
+                    this.configs.get(sftpPass));
+            sftpConnection.setConnectionDB(dbConnection);
+            int res = sftpConnection.setConnection(this.configs.get(sftpRemDir), this.configs.get(localDir));
+
+            if (res >= 0)
+                dbConnection.closeConnection();
+        }
+        else System.out.println("Parsed was failing");
     }
 
 
