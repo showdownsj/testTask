@@ -44,19 +44,23 @@ public class SftpConnection {
             FilesCopyTable filesCopyTable = new FilesCopyTable();
             FilesCopyTableWorker filesCopyTableWorker = new FilesCopyTableWorker(this.connectionDB);
 
-            List<ChannelSftp.LsEntry> listOfFiles = channelSftp.ls(source+"/*.*");
+            List<ChannelSftp.LsEntry> listOfFiles = channelSftp.ls(source+"/*");
 
             for(ChannelSftp.LsEntry file : listOfFiles ){
                // System.out.println(file.getFilename());
-                channelSftp.get(source+"/"+file.getFilename(),dest+"/"+file.getFilename());
+                try {
+                    channelSftp.get(source + "/" + file.getFilename(), dest + "/" + file.getFilename());
 
-                Date dateNow = new Date();
-                filesCopyTable.setNameOfFile(file.getFilename());
-                filesCopyTable.setDateOfCopy(dateNow);
-                //System.out.println(dateNow);
+                    Date dateNow = new Date();
+                    filesCopyTable.setNameOfFile(file.getFilename());
+                    filesCopyTable.setDateOfCopy(dateNow);
+                    //System.out.println(dateNow);
 
-                filesCopyTableWorker.insertLogs(filesCopyTable);
-
+                    filesCopyTableWorker.insertLogs(filesCopyTable);
+                }
+                catch (SftpException ex){
+                    System.out.println("Directory can't be copied");
+                }
             }
 
 
