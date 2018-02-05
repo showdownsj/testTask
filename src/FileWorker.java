@@ -75,17 +75,18 @@ public class FileWorker {
             dbConnection.initConnection(this.configs.get(sqlDB), this.configs.get(sqlUser),
                     this.configs.get(sqlPass));
 
-
             //2
-            SftpConnection sftpConnection = new SftpConnection(this.configs.get(sftpHost),
-                    Integer.parseInt(this.configs.get(sftpPort)),
-                    this.configs.get(sftpUser),
-                    this.configs.get(sftpPass));
-            sftpConnection.setConnectionDB(dbConnection);
-            int res = sftpConnection.setConnection(this.configs.get(sftpRemDir), this.configs.get(localDir));
+            if(dbConnection.getConnection() != null) {
+                SftpConnection sftpConnection = new SftpConnection(this.configs.get(sftpHost),
+                        Integer.parseInt(this.configs.get(sftpPort)),
+                        this.configs.get(sftpUser),
+                        this.configs.get(sftpPass));
+                sftpConnection.setConnectionDB(dbConnection);
+                int res = sftpConnection.setConnection(this.configs.get(sftpRemDir), this.configs.get(localDir));
 
-            if (res >= 0)
-                dbConnection.closeConnection();
+                if (res >= 0)
+                    dbConnection.closeConnection();
+            }
         }
         else System.out.println("Parsed was failing");
     }
